@@ -101,7 +101,6 @@ defmodule Hog do
           {:memory, process_memory} = Process.info(pid, :memory)
           current_monotonic_time = System.monotonic_time(:millisecond)
 
-          # TODO: Add check for max_report_frequency
           with true <- process_memory > state.memory_threshold,
                true <- within_max_report_frequency?(pid, state.max_report_frequency, current_monotonic_time, acc) do
             TelemetryEvents.emit_memory_threshold_surpassed_event(pid)

@@ -103,7 +103,7 @@ defmodule Hog do
 
           with true <- process_memory > state.memory_threshold,
                true <- within_max_report_frequency?(pid, state.max_report_frequency, current_monotonic_time, acc) do
-            TelemetryEvents.emit_memory_threshold_surpassed_event(pid)
+            TelemetryEvents.emit_memory_threshold_surpassed_event(process_memory, pid, current_monotonic_time)
 
             Map.put(acc, pid, current_monotonic_time)
           else

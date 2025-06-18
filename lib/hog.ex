@@ -18,7 +18,7 @@ defmodule Hog do
     ],
     event_handler: [
       type: {:or, [nil, {:fun, 2}]},
-      default: &Hog.Logger.default_handler/2,
+      default: &Hog.Logger.default_logger/2,
       doc: "The handler function that is called when a process surpasses the configured memory_threshold"
     ]
   ]

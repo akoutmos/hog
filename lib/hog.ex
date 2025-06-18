@@ -6,8 +6,8 @@ defmodule Hog do
       doc: "The interval for how often the running processes are scanned."
     ],
     memory_threshold: [
-      type: {:tuple, [:pos_integer, {:in, [:kilobytes, :megabytes, :kibibyte, :mebibyte]}]},
-      default: {1, :minutes},
+      type: {:tuple, [:pos_integer, {:in, [:kilobytes, :megabytes, :kibibytes, :mebibytes]}]},
+      default: {100, :megabytes},
       doc: "The memory threshold that determines whether a telemetry event is emitted."
     ],
     max_report_frequency: [
@@ -15,6 +15,11 @@ defmodule Hog do
       default: {1, :minutes},
       doc:
         "As not to create too many telemetry events about the same process over and over again, you can specify how often a particular process has a telemetry event emitted for it. The check for the process is based on the PID. So if the process crashes and is restarted, it will be reported again since it is running under a new PID."
+    ],
+    event_handler: [
+      type: {:or, [nil, {:fun, 2}]},
+      default: &Hog.Logger.default_handler/2,
+      doc: "The handler function that is called when a process surpasses the configured memory_threshold"
     ]
   ]
 
@@ -54,26 +59,35 @@ defmodule Hog do
 
   @impl true
   def init(opts) do
+    # If a logger event handler is specified, attach it via telemetry
+    if opts[:event_handler] do
+      TelemetryEvents.attach_memory_threshold_surpassed_handler(opts[:event_handler])
+    end
+
+    # Get the scan interval
     scan_interval =
       case opts[:scan_interval] do
         {num, :minutes} -> :timer.minutes(num)
         {num, :seconds} -> :timer.seconds(num)
       end
 
+    # Get the memory threshold
     memory_threshold =
       case opts[:memory_threshold] do
         {num, :megabytes} -> num * 1_000_000
-        {num, :mebibyte} -> num * 1_048_576
+        {num, :mebibytes} -> num * 1_048_576
         {num, :kilobytes} -> num * 1_000
-        {num, :kibibyte} -> num * 1_024
+        {num, :kibibytes} -> num * 1_024
       end
 
+    # Get the max report frequency
     max_report_frequency =
       case opts[:max_report_frequency] do
         {num, :minutes} -> :timer.minutes(num)
         {num, :seconds} -> :timer.seconds(num)
       end
 
+    # Create the initial state of the GenServer
     state = %{
       init_opts: opts,
       scan_interval: scan_interval,

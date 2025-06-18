@@ -137,7 +137,7 @@ defmodule Hog do
   # +-------------------------------------------------------+
   defp handle_process_scanning(state, pid, acc) do
     with process_info when not is_nil(process_info) <- Process.info(pid, state.process_info_fields),
-         %{memory: process_memory} = process_info <- Map.new(),
+         %{memory: process_memory} = process_info <- Map.new(process_info),
          current_monotonic_time <- System.monotonic_time(:millisecond),
          true <- process_memory > state.memory_threshold,
          true <- within_max_report_frequency?(pid, state.max_report_frequency, current_monotonic_time, acc) do

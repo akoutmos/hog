@@ -75,4 +75,31 @@ Checkout my [GitHub Sponsorship page](https://github.com/sponsors/akoutmos) if y
 
 ## Using Hog
 
-Add `{:hog, "~> 0.1.0"}` to your `mix.exs` file and run `mix deps.get`.
+Add `{:hog, "~> 0.1.0"}` to your `mix.exs` file and run `mix deps.get`. After installing the dependency,
+you can add the following line to your `application.ex` file:
+
+```elixir
+defmodule MyApp.Application do
+  use Application
+
+  @impl true
+  def start(_type, _args) do
+    children = [
+      # If the defaults laid out in `Hog` work for your use case, you can have
+      # just `Hog`, else provide your specific options.
+      {Hog, scan_interval: {30, :seconds}, memory_threshold: {100, :megabytes}},
+      ...
+    ]
+
+    opts = [strategy: :one_for_one, name: MyApp.Supervisor]
+    Supervisor.start_link(children, opts)
+  end
+
+  ...
+end
+```
+
+With that in place, you can start your application and memory hungry processes will be logged using the `Logger`
+module. If the default logging function does not provide adequate information to help track down the memory hungry
+process, you can always provide your own `:event_handler` to the `Hog` GenServer via config or even tie into the
+`:telemetry` events yourself using the `Hog.TelemetryEvents` module.

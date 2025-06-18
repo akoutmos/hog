@@ -16,15 +16,21 @@ defmodule Hog.TelemetryEvents do
 
   #### Metadata
 
+  * `:process_info` - all of the information about the process that exceeded the memory threshold as configured when starting the  `Hog` process.
   * `:pid` — the PID of the offending process
   * `:current_monotonic_time` — the monotonic time when the exceeded memory threshold was detected
   * `:timestamp` - the timestamp when the exceeded memory threshold was detected
   """
-  def emit_memory_threshold_surpassed_event(process_memory, pid, current_monotonic_time) do
+  def emit_memory_threshold_surpassed_event(process_memory, pid, process_info, current_monotonic_time) do
     :telemetry.execute(
       @memory_threshold_surpassed,
       %{process_memory: process_memory},
-      %{pid: pid, current_monotonic_time: current_monotonic_time, timestamp: NaiveDateTime.utc_now()}
+      %{
+        pid: pid,
+        process_info: process_info,
+        current_monotonic_time: current_monotonic_time,
+        timestamp: NaiveDateTime.utc_now()
+      }
     )
   end
 

@@ -13,7 +13,7 @@ defmodule Hog.Logger do
     width: 120
   ]
 
-  def default_logger(%{process_memory: process_memory}, %{pid: pid}) do
+  def default_logger(%{process_memory: process_memory}, %{pid: pid, process_info: process_info}) do
     process_state =
       try do
         "#{inspect(:sys.get_state(pid), @inspect_opts)}"
@@ -21,18 +21,26 @@ defmodule Hog.Logger do
         _, _ -> "Unable to retrieve process state"
       end
 
-    {:reductions, reductions} = Process.info(pid, :reductions)
-    {:message_queue_len, message_queue_len} = Process.info(pid, :message_queue_len)
-    {:current_stacktrace, current_stacktrace} = Process.info(pid, :current_stacktrace)
+    reductions = process_info.reductions
+    message_queue_len = process_info.message_queue_len
+    current_stacktrace = process_info.current_stacktrace
+    registered_name = process_info.registered_name
 
     current_stacktrace =
       Enum.map_join(current_stacktrace, "\n", fn term ->
         "  #{inspect(term, @inspect_opts)}"
       end)
 
+    registered_name =
+      case registered_name do
+        [] -> "Not a named process"
+        name -> " #{inspect(name, @inspect_opts)}"
+      end
+
     Logger.warning("""
     ================ Hog memory threshold warning  ================
     PID: #{inspect(pid, @inspect_opts)}
+    Process name: #{registered_name}
     Process memory: #{pretty_print_number(process_memory)} bytes
     Reductions: #{pretty_print_number(reductions)}
     Message queue length: #{pretty_print_number(message_queue_len)}

@@ -10,7 +10,15 @@ defmodule Hog.TelemetryEvents do
   This event is emitted when a process surpasses the memory threshold. It contains the following
   measurements and metadata:
 
+   #### Measurements
 
+  * `:process_memory` — the amount of memory consumed by the process (in bytes)
+
+  #### Metadata
+
+  * `:pid` — the PID of the offending process
+  * `:current_monotonic_time` — the monotonic time when the exceeded memory threshold was detected
+  * `:timestamp` - the timestamp when the exceeded memory threshold was detected
   """
   def emit_memory_threshold_surpassed_event(process_memory, pid, current_monotonic_time) do
     :telemetry.execute(

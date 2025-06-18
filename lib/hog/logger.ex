@@ -6,6 +6,10 @@ defmodule Hog.Logger do
 
   require Logger
 
-  def default_logger(measurements, metadata) do
+  def default_logger(%{process_memory: process_memory}, %{pid: pid}) do
+    Logger.warning("""
+    PID: #{inspect(pid)}
+    Process memory: #{inspect(process_memory)}
+    """)
   end
 end
